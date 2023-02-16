@@ -1,0 +1,42 @@
+qaic-util, is a utility tool to list and query the Qualcomm AIC 100 cards connected to the host.
+
+----------------------------------------------------------------------------------------------
+Getting Started
+----------------------------------------------------------------------------------------------
+
+Pre-requisites:
+1. Qualcomm AIC 100 card connected to the Host.
+2. QAIC 100 card installed with Platform SDK comaptible with QAic Runtime.
+3. qaic-util executable binary
+
+Usage:
+----------------------------------------------------------------------------------------------
+Please find below the location of the binary from root directory of QAic Runtime
+$WS> ./build/utils/qaic-util/qaic-util -h
+Usage: qaic-util [options]
+  -d, --aic-device-id <id>                   AIC device ID. -d option can be used multiple times
+  -q, --query [-d QID]                       Query command to get device information, default All
+  -t, --table <refresh-rate-sec> [-d QID]    Display device information in tabular format. Data is refreshed
+                                             after every <refresh-rate-sec>. Ctrl+C to exit
+  -h, --help                                 help
+
+List the devices
+----------------------------------------------------------------------------------------------
+   The query "-q" option identifies the Qualcomm AIC 100 cards, both native and derived, presented
+   to the host Opearting System. Along with the device access information, it also performs a device query
+   to retreive the current state of the device, and the current state of device resources.
+
+   1.1 List/query all the devices presented to the Host
+       # sudo qaic-util -q
+
+   1.2 List/query a specific device:
+       # sudo qaic-util -q -d 1
+
+Identify a READY device.
+----------------------------------------------------------------------------------------------
+   # sudo qaic-util -q | grep -E "Status|QID"
+     QID 0
+        Status:Ready
+     QID 1
+        Status:Ready
+   A Status of "Ready" indicates that the device is ready for inference.

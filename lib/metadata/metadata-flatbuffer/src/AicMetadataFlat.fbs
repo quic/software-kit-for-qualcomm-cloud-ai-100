@@ -1,0 +1,285 @@
+//flatbuffer version for AICMetdata
+
+namespace AicMetadataFlat;
+
+enum execContextVariables : byte {
+network_execution_base=0,
+port_info=1,
+network_heap=2,
+MCID_reprog=3,
+QNN_dl_support=4
+}
+
+table execContext {
+execContextSize:uint16;
+execContextFields:[execContextField];
+}
+
+struct execContextField {
+variableNeeded:execContextVariables;
+variableSize:uint16;
+execContextOffset:uint64;
+isRequired:bool;
+}
+
+enum AICHardwareVersion : long {  AIC_HW_VER_1_0 = 0x10000, AIC_HW_VER_2_0 = 0x20000 }
+
+enum AICMDSemaphoreOpcode : byte {
+  AICMDSemaphoreCmdNOP = 0,    // nop.
+  AICMDSemaphoreCmdINIT = 1,   // Set sem to val.
+  AICMDSemaphoreCmdINC = 2,    // Increment sem.
+  AICMDSemaphoreCmdDEC = 3,    // Decrement sem.
+  AICMDSemaphoreCmdWAITEQ = 4, // Wait for sem to be == val.
+  AICMDSemaphoreCmdWAITGE = 5, // Wait for sem to be >= val.
+  AICMDSemaphoreCmdP = 6,      // Wait for sem to be > 0 and decrement.
+}
+
+enum AICMDSemaphoreSync : byte {
+  AICMDSemaphoreSyncPost = 0,
+  AICMDSemaphoreSyncPre = 1,
+}
+
+table AICMDSemaphoreOp {
+  semNum:uint16;   // Which semaphore does this operation use?
+  semValue:uint16; // Command immediate value (e.g., value to store)
+  // Is this semaphore operation done before or after the DMA data
+  // transfer?
+  semOp:uint8;     // AICMDSemaphoreOpcode
+  preOrPost:uint8; // AICMDSemaphoreSync: Wait for all previous inbound
+                     // transfers to complete before beginning processing
+                     // this transfer.
+  inSyncFence:uint8;
+  // Wait for all previous outbound transfers to complete before
+  // beginning processing this transfer.
+  outSyncFence:uint8;
+}
+
+// Size of data to be written to doorbell
+ enum AICMDDoorbellOpSize: byte{
+  AICMDDoorballOpSize8,
+  AICMDDoorballOpSize16,
+  AICMDDoorballOpSize32
+}
+
+table AICMDDoorbellOp {
+  offset:uint64; // base address offset to data start
+  data:uint32;   // value to be written to doorbell
+  mcId:uint16;   // reference to host multicast table entry
+  size:uint8;    // AICMDDoorbellOpSize
+}
+
+enum AICMDDMAEntryAddrSpace : byte{
+  AICMDDMAAddrSpaceMC,  // Multicast address
+  AICMDDMAAddrSpaceDDR, // DDR virtual address
+}
+
+enum AICMDDMADirection : byte{
+  AICMDDMAIn = 0,
+  AICMDDMAOut = 1,
+}
+
+table AICMDDMARequest {
+  semaphoreOps:[AICMDSemaphoreOp];
+  doorbellOps:[AICMDDoorbellOp];
+  hostOffset:uint64; // offset into host-side buffer to data start
+  devOffset:uint64;  // offset into device-side buffer to data start
+  size:uint32;       // size of data to be transferred
+  num:uint16;  // input number that corresponds to host buffer argument list
+                 // position
+  mcId:uint16; // Multicast ID; only used if devAddrSpace ==
+                 // AICMDDMAAddrSpaceMC
+  devAddrSpace:uint8; // AICMDDMAEntryAddrSpace
+  inOut:uint8;        // AICMDDMADirection: inbound or outbound (from AIC
+                        // device perspective).
+  portId:uint16;      // Each DMA buffer is assigned a portId which is used to
+                        // identify a source or destination endpoint in a
+                        // topology involving multiple sub-networks. Source and
+                        // destination endpoints from the same sub-network have
+                        // different portIds. portIds for endpoints in a network
+                        // start from AIC_METADATA_PORTID_BASE.
+ }
+
+enum AICMDMulticastEntryAddrSpace : byte {
+  AICMDAddrSpaceL2TCM,
+  AICMDAddrSpaceVTCM,
+}
+
+table AICMDNSPMulticastEntry {
+  baseAddrOffset:uint64; // Offset from the VTCM/L2TCM base address.  The
+                           // offset should be 4k aligned.
+  mask:uint32; // Bitvector used by the sender to specify the NSP virtual ids
+                 // of the receivers.
+  size:uint32; // Size of region targeted using this multicast id.
+  addrSpace:uint8; // AICMDMulticastEntryAddrSpace: Specifies base
+                     // address, vTCM or L2TCM, used by the receiver.
+  dynamic:uint8;   // When set indicates entry is dynamically mapped.
+}
+
+table AICMDNSPMulticastEntryTable {
+  multicastEntries:[AICMDNSPMulticastEntry];
+}
+
+// Host multicast entry. Host entries are special because the host can only send
+// multicasts, not receive.
+table AICMDHostMulticastEntry{
+  mask:uint32; // Bitvector used by host specify the NSP virtual ids of the
+                 // receivers.
+  size:uint32; // Size of region targeted using this multicast id.
+}
+
+table AICMDHostMulticastEntryTable {
+  multicastEntries:[AICMDHostMulticastEntry];
+}
+
+enum AICMDThreadType :byte{
+  AICMDThreadHMX = 1,
+  AICMDThreadHVX = 2,
+}
+
+// Description of threads to be setup and where to transfer control for each
+// thread upon start.
+table AICMDThreadDescriptor{
+  // This 'entryPoint' function expects to be passed a const pointer to a
+  // AICExecContext via the standard ABI mechanism:
+  //   void entryPoint(const AICExecContext*, uint8_t virtualThreadId,
+  //                   uint32_t stid);
+  entryPoint:uint64;
+  typeMask:uint8; // AICMDThreadType mask
+  // Note: For v68 we need HVX threads to be divided evenly between HW threads
+  // 0,1,2 and 3,4,5. This will be handled by the QuRT scheduler.
+}
+
+table AICMDConstantMapping {
+  constantDataBaseOffset:uint64; // offset from constant data buffer base (EA =
+                              // constantDataBase + constantDataBaseoffset)
+  coreMask:uint32;
+  size:uint32;
+}
+
+table Metadata {
+
+   versionMajor:uint16;
+   versionMinor:uint16;
+// Use ONNX/whatever metadata domain, version, graph name to encode unique
+// name for AIC runtime.
+   networkName:string;
+//required fields the firmware must be able to parse in the format <lineage>|name:position:type
+   requiredFields:[string];
+
+// Init state of semaphores.  Number of elements in array == numSemaphores.
+	semaphoreInitState:[uint32];
+  // Before any NSP is activated, the L2TCM of all NSPs must be initialized to
+  // some known state.  This buffer contains the initial values that need to be
+  // copied into each NSPs L2TCM.  The size of the buffer == L2TCMInitSize.
+	L2TCMInitState:[uint8];
+// AICMDDMARequest[]
+	dmaRequests:[AICMDDMARequest];
+// AICMDNSPMulticastEntryTable[]: One AICMDNSPMulticastEntryTable per
+// NSP.
+	nspMulticastTables:[AICMDNSPMulticastEntryTable];
+// AICMDHostMulticastEntryTable[]: Host-side multicast table.
+   hostMulticastTable:AICMDHostMulticastEntryTable;
+// AICMDThreadDescriptor[]
+   threadDescriptors:[AICMDThreadDescriptor];
+
+// AICMDConstantMapping[]: This table is used to specify the static mapping of
+// the constant shared buffer into the NSPs virtual address space. There is a
+// single mapping for each NSP. Each entry in the table can map one or more
+// NSPs based on the mask bits. The common case will be a single table entry
+// that maps all NSPs. If multiple entries exist the mask bit for any NSP must
+// not be set in more than one entry (otherwise, the NSP has multiple
+// mappings). These regions are uncached and read-only. The firmware provides
+// the base address of the region in the execution context. This region needs
+// to be aligned to 256 bytes.
+
+   constantMappings:[AICMDConstantMapping];
+
+  // The staticSharedDDRSize specifies the size of a statically mapped shared
+  // region of DDR memory. The dynamicSharedDDRSize specifies the size of a
+  // dynamically mapped shared region of DDR memory. Thus, the total size of the
+  // shared DDR region is staticSharedDDRSize + dynamicSharedDDRSize. This
+  // region is uncached and readable/writable by all NSPs. The firmware provides
+  // the base address of the statically mapped region in the execution context.
+  // The entire region needs to be aligned to 2048 bytes. All other writable
+  // memory regions specified in the network ELF (i.e.  .data/.bss/ etc.) are
+  // not shared across NSPs.  A separate copy of these data sections is
+  // allocated for each NSP the network is activated on.
+  staticSharedDDRSize:uint64;
+  dynamicSharedDDRSize:uint64;
+
+  // The staticConstantsSize specifies the size of the statically mapped region
+  // of the constant shared buffer. The dynamicConstantsSize specifies the size
+  // of the dynamically mapped region of the constant shared buffer. Thus, the
+  // total size of the constant shared buffer is staticConstantsSize +
+  // dynamicConstantsSize. The constants are laid out in the input buffer such
+  // that the first constantsSize bytes are statically mapped (as defined by the
+  // constantMappings). The remaining dynamicConstantsSize bytes are dynamically
+  // mapped by the compiler.
+  staticConstantsSize:uint64;
+  dynamicConstantsSize:uint64;
+
+  // Exit doorbell offset: This is an offset into the network's L2TCM memory
+  // that is used to signal the network image that it should terminate
+  // execution.  The offset refers to one byte of memory, that when set to 1
+  // signals the threads of the network image that they should exit at the next
+  // synchronization point.  The network image threads exit by means of calling
+  // the 'exitThread' function passed in via the AICExecContext.
+  exitDoorbellOffset:uint64;
+
+  // This is a tiny DDR region used a workaround for NSP pause errata.
+  // https://qti-jira.qualcomm.com/jira/browse/QDSP-31616
+  // It is mapped as cccc=0xf (L1 uncached, L2 cached WB).
+  // The first 64B cache line will be locked in the L2 to guarantee latency.
+  l2CachedDDRSize:uint32;
+
+  // Describes the size of the initialization data for L2TCM.  Irrespective of
+  // this size, the assumption is that all of L2TCM is made available for the
+  // network to use.  The L2TCM allocation needs to be aligned to 4k bytes.
+  // NOTE: Slave port writes to the range [L2TCM_Base, L2TCM_Base+64kB) will
+  // cause a wake from pause event as programmed by root-image.
+  // (Event_Reg_High/Lo)
+  L2TCMInitSize:uint32;
+
+  // Execution context version - This allows LRT/QSM not to have to change when
+  // a new OS interface function is added.
+  execContextMajorVersion:uint16;
+
+  // Number of NSPs network is compiled for.
+  numNSPs:uint16;
+
+  // Number of virtual semaphores 0..N-1.  The translation from virtual to
+  // physical semaphore number is done by the GSM.
+  numSemaphores:uint16;
+
+  // Hardware version.
+  hwVersionMajor:uint8;
+  hwVersionMinor:uint8;
+
+  // Is hardware ECC enabled?
+   staticSharedDDRECCEnabled:uint8;
+   dynamicSharedDDRECCEnabled:uint8;
+   staticConstantsECCEnabled:uint8;
+   dynamicConstantsECCEnabled:uint8;
+
+  // When non-zero the network has been compiled using a single VTCM page.  When
+  // zero the network has been compiled using 2 VTCM pages.
+  singleVTCMPage:uint8;
+
+  // Indicate the presence of FP instructions
+  hasHvxFP:uint8;
+  hasHmxFP:uint8;
+
+  // VTCM size required for this network.
+  VTCMSize:uint32;
+
+  // Describes the size of the L2TCM.
+  L2TCMSize:uint32;
+
+  // Size of the network heap
+
+  networkHeapSize:uint64;
+  //size of the total raw metadata struct encoded version
+  raw_struct_version_length:uint64;
+}
+
+root_type Metadata;

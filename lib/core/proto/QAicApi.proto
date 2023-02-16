@@ -1,0 +1,132 @@
+//-----------------------------------------------------------------------------
+//
+// Qualcomm Technologies, Inc. Proprietary
+// (c) 2021-2022 Qualcomm Technologies, Inc. All rights reserved.
+//
+// All data and information contained in or disclosed by this document are
+// confidential and proprietary information of Qualcomm Technologies, Inc., and
+// all rights therein are expressly reserved. By accepting this material, the
+// recipient agrees that this material and the information contained therein
+// are held in confidence and in trust and will not be used, copied, reproduced
+// in whole or in part, nor its contents revealed in any manner to others
+// without the express written permission of Qualcomm Technologies, Inc.
+//
+//-----------------------------------------------------------------------------
+
+syntax = "proto3";
+package aicapi;
+
+// inbound/outbound is from AIC device perspective
+enum bufferIoDirectionEnum {
+  BUFFER_IO_TYPE_INPUT = 0;  // inbound (to device)
+  BUFFER_IO_TYPE_OUTPUT = 1; // outbound (from device)
+}
+
+enum bufferIoDataTypeEnum {
+  FLOAT_TYPE = 0;    /// 32-bit float type (float)
+  FLOAT_16_TYPE = 1; /// 16-bit float type (half, fp16)
+  INT8_Q_TYPE = 2;   /// 8-bit quantized type (int8_t)
+  UINT8_Q_TYPE = 3;  /// unsigned 8-bit quantized type (uint8_t)
+  INT16_Q_TYPE = 4;  /// 16-bit quantized type (int16_t)
+  INT32_Q_TYPE = 5;  /// 32-bit quantized type (int32_t)
+  INT32_I_TYPE = 6;  /// 32-bit index type (int32_t)
+  INT64_I_TYPE = 7;  /// 64-bit index type (int64_t)
+  INT8_TYPE = 8;     /// Int8 type (bool)
+  TYPE_INVALID = 0xff;
+}
+
+/// DmaBufInfo expresses the relationship between IoBindings e.g. User Buffers
+/// and DMA Buffers.
+/// This information is only provided for the "dma" IoSet
+/// In the case that Dma Descriptor DmaDesc is used instead of IoDesc,
+/// Users should create DMA Buffers according to the DmaDesc
+/// and populate the input data as follows:
+/// copy from io_binding_offset for the buffer, for dma_size
+/// starting at dma_offset, to/from dma_buf_index
+message DmaBufInfo
+{
+  uint32  dma_buf_index = 1;
+  uint32  dma_size = 2;
+  uint32  io_binding_offset = 3;
+  uint32  dma_offset = 4;
+}
+
+// For Dynamic Tensor support. tensorShape describes one allowed dimension for
+// one input/output buffer.
+message TensorShape {
+  bufferIoDataTypeEnum type = 1;
+  repeated int32 dims = 2;
+}
+
+// The size of the shapes array shall be the same as inputs+outputs.
+// The order of shapes is inputs first, followed by outputs.
+// The order within inputs/outputs shall be the same as in IoBindings.
+message IoShapes {
+  repeated TensorShape shapes = 1;
+}
+
+message IoBinding
+{
+    string name  = 1;        /// Buffer Name
+    uint32 index = 2;
+    bufferIoDataTypeEnum type = 3;
+    bufferIoDirectionEnum dir = 4;
+    float quant_scale = 5;
+    int32 quant_offset = 6;
+    repeated int32 dims = 7;
+    uint32 size = 8;          /// Total size in bytes
+    repeated DmaBufInfo dma_buf_info= 9;  ///  0 for all IO Binding except "dma"
+    bool is_partial_buf_allowed = 10;
+
+    bool is_valid = 20; /// Set to false, if binding for an IO buffer is not valid in IoSet
+                        /// Default IoSet properties are populated for other parameters of IoBinding
+}
+
+message IoSet
+{
+    string   name = 1;    // Default set  name "default"
+    repeated IoBinding bindings = 2;
+}
+
+message RuntimeConstants {
+  string name = 1;
+  uint32 size = 2;
+  uint32 offset = 3;
+}
+
+/// User gets 2 schemes to skip certain pre and post processing stages.
+/// User cannot use pre/post_process_skip_stages, if selected_set is used and vice versa.
+/// If user sets selected_set,
+///  - runtime library skips pre-processing from first transform sequence to selected_set name.
+///  - runtime library skips post-processing from selected_set name to last transform sequence.
+///  - If selected_set name is not present in some of the IO buffers, pre/post processing is not skipped for them.
+/// If user sets pre_process_skip_stages and post_process_skip_stages,
+///  - User need not to fill IoBinding, just IoSet name is required by runtime library.
+///  - Order of IoSet in pre/post_process_skip_stages is same as order of Input/Output buffers.
+///  - User has to set both post_process_skip_stages and post_process_skip_stages.
+///  - User can select different skip stages for each IO buffer using this scheme.
+/// Valid names for IoSet are as below
+///  - default, quantize, transpose, convert, dma
+/// ‘default’ means no stages are skipped, pre and post processing is done by runtime library.
+/// ‘dma’ stage is never skipped. When user sets ‘dma’,
+///  - All stages before ‘dma’ is skipped in pre-processing path.
+///  - All stages after ‘dma’ is skipped in post-processing path.
+/// It is user’s responsibility to do pre/post processing of the skipped stages for each IO buffer.
+message IoDesc
+{
+    repeated IoSet io_sets = 1;  // Defines all the supported sets
+    IoSet selected_set = 2;  // Defines the set selected by user
+    string program_name = 3;
+    repeated DmaBuf dma_buf = 4;
+    repeated RuntimeConstants runtime_constants = 5;
+    repeated IoSet pre_process_skip_stages = 6;  // Defines the pre processing skip stage selected for each input buffer
+    repeated IoSet post_process_skip_stages = 7;  // Defines the post processing skip stage selected for each output buffer
+    repeated IoShapes allowed_shapes = 8; // List all allowed shape combinations
+}
+
+message DmaBuf
+{
+  uint32 index = 1;
+  uint32 size = 2;
+  bufferIoDirectionEnum dir = 3;
+}

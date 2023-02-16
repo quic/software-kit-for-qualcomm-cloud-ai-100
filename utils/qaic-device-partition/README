@@ -1,0 +1,92 @@
+Device partitioning is a virtualization technique for Qualcomm AIC 100 card
+that creates a Derived device with discrete set of resources on the native
+device.
+
+The Derived Device is tied to a "Resource Group Reservation" made by the
+application and is presented with Device id(QID) greater than 100 [Eg: QID 100].
+The Derived device is allowed to use only the pre-reserved set of resources
+tied to its reservation and is non-presistant in nature. Either of the below
+two scenarios will destroy the device and release the resources associated with
+it.
+  a. The device would be destroyed when the Resource Group Reservation is
+     released by application either explicitly or when the application dies.
+  b. A hard reset is performed on the device.
+
+Below listed are the set of resources that are available for reservation under
+"Resource Group"
+  - Neural Signal Processors(NSP)
+  - Multicast IDs (MCID)
+  - Virtual Channels for DMA data
+  - Device Semaphores
+  - Device Memory (DDR, L2)
+
+qaic-device-parition, is an example application to create the Derived Device
+with the specified set of device resources.
+
+---------------------------------------------------------------------------------------------
+Getting Started
+---------------------------------------------------------------------------------------------
+
+Pre-requisites:
+1. Qualcomm AIC 100 card connected to the Host.
+2. QAIC 100 card installed with Platform SDK comaptible with QAic Runtime.
+3. qaic-util utility executable
+4. qaic-device-partition utility executable
+5. Configure the resource set with any of the one options below:
+   3.1 Specify the network binary aka QPC, eg. program.qpc, generated using QAic Compute SDK.(Link:https://github.com/quic/software-kit-for-qualcomm-cloud-ai-100-cc)
+      In this method, the tool automatically identifies the required amount of
+      resources needed by network and creates a resource group.
+
+   3.2 Explicilty specify the resources to be reserved throug the json file.
+      A sample for the same has been provided and its schema explained at the end of
+      the README.
+
+Usage:
+----------------------------------------------------------------------------------------------
+PLease fine below the location of the binary from root directory of QAic Runtime
+$WS> ./build/utils/qaic-device-partition/qaic-device-partition -h
+Usage: qaic-partition [options]
+  -p, --partition-config <path>      File path to the partition config json.
+  -d, --aic-device-id                Optional qaic devices id. Default: Apply to all devices
+  -q, --program-qpc                  Path to the program QPC. this param can be repeated. The
+                                     reservation will correspond to the largest program requested.
+                                     'partition-config' takes precedence over this param.
+  -h, --help                         help
+
+
+Create and Test the Derived Device:
+----------------------------------------------------------------------------------------------
+1. Create the Derived device
+   Launch the qaic-device-partition utility as a daemon to keep the Derived device
+   alive until either the process is explicilty killed.
+
+
+   1.1 If requesting resources using the QPC file:
+       # sudo qaic-device-partition -q <path to qpc>/programqpc.bin -d 2 &
+
+   1.2 If requesting resources using json config file:
+       # sudo qaic-device-partition -p <path to json>/config.json &
+
+2. Verify the Derived device creation:
+   Run qaic-util tool to list the newly generated device. Typically the
+   Derived devices have QID >= 100. Note that PCI fields are invalid as it is a
+   emulated device, and PCI Hardware attributes are not applicable.
+   Eg: # sudo qaic-util -q -d 101
+
+3. Destroy the device.
+   On killing the utility the Derived device should disappear and one may verify
+   that the resources are added back to the native device's resource pool.
+
+
+Configuration File Format:
+----------------------------------------------------------------------------------------------
+    Json input sample:
+    {
+            "ddrSize": 5000,
+            "numNsp": 4,
+            "numMcid": 10,
+            "numSem": 20,
+            "numVc": 1,
+            "l2Region": 100
+    }
+Please note that all the values are mandatory.

@@ -1,0 +1,3 @@
+The auto-generated flatbuffer headers are pre-bundled in the repo.
+To re-generate the flatbuffer headers. From the root of the QAic Runtime build folder
+    build$ ./_deps/flatbuffers-build/flatc --gen-object-api --cpp ../lib/metadata/metadata-flatbuffer/src/AicMetadataFlat.fbs --no-warnings --reflect-names

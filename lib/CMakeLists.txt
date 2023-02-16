@@ -1,0 +1,6 @@
+add_subdirectory(runtime-platform)
+add_subdirectory(qlog)
+add_subdirectory(metadata)
+add_subdirectory(networkdesc)
+add_subdirectory(network-driver)
+add_subdirectory(core)

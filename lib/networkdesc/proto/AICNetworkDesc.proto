@@ -1,0 +1,203 @@
+// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+syntax = "proto3";
+package aicnwdesc;
+
+enum dataType {
+  FloatTy = 0;    // 32-bit float type (float)
+  Float16Ty = 1;  // 16-bit float type (half, fp16)
+  Int8QTy = 2;    // 8-bit quantized type (int8_t)
+  UInt8QTy = 3;   // unsigned 8-bit quantized type (uint8_t)
+  Int16QTy = 4;   // 16-bit quantized type (int16_t)
+  Int32QTy = 5;   // 32-bit quantized type (int32_t)
+  Int32ITy = 6;   // 32-bit index type (int32_t)
+  Int64ITy = 7;   // 64-bit index type (int64_t)
+  Int8Ty = 8;     // 8-bit type (int8_t)
+}
+
+enum networkDescLayout {
+  FlatNXYD = 0;
+  D32Untiled = 1;
+  D32UntiledWeights = 2;
+  D32ChannelMajor8x8 = 3;
+  D32ChannelMajor1x64 = 4;
+  D32SpatialMajor8x8 = 5;
+  D32SpatialMajor1x64 = 6;
+  D4ChannelMajor8x8 = 7;
+  D4SpatialMajor8x8 = 8;
+  PackedD4ChannelMajor8x8 = 9;
+  PackedD4SpatialMajor8x8 = 10;
+}
+
+enum transformKind {
+  ConvertTransform = 0;         // Convert from one dataType to another.
+  ConvertToD32Transform = 1;    // Convert to D32 format.
+  ConvertFromD32Transform = 2;  // Convert from D32 format.
+  DequantizeTransform = 3;
+  TransposeTransform = 4;
+  QuantizeTransform = 5;
+  CopyDMABufferTransform = 6;
+}
+
+// inbound/outbound is from AIC device perspective
+enum direction {
+  In = 0;  // inbound (to device)
+  Out = 1; // outbound (from device)
+}
+
+enum CRCAlgorithm {
+  CRC_BASIC_ALGORITHM = 0;      // Run CRC sequentially.
+}
+
+message CRCEntry {
+  uint32 dma_buffer_num = 1;    // DMA Buffer number on which CRC is to be
+                                // computed
+  uint32 offset = 2;            // Offset from start of buffer on which to start
+                                // CRC computation
+  uint32 size = 3;              // Size of the buffer on which to compute CRC,
+                                // which must be <= size of the buffer in memory
+  uint32 crc_entry_idx = 4;     // Index in CRC output buffer
+  uint32 begin_crc_block_size = 5; // Calculate CRC on data starting at offset
+                                   // for this size, in bytes
+  uint32 end_crc_block_size = 6;   // Compute CRC over end block of buffer from
+                                   // (offset + size) - end_crc_block_size to
+                                   // (offset + size)
+  uint32 stride_interval = 7;   // Size of stride in bytes
+  uint32 stride_size = 8;       // Size of data to calculate CRC at each stride
+                                // stride_size may be 0, indicating no stride
+  CRCAlgorithm algorithm = 9;   // Algorithm used to run CRC
+}
+
+message CRCInfo {
+  uint32 buff_num = 1;           // DMA buffer number for CRC ouput buffer
+  repeated CRCEntry entries = 2; // List of CRC entries
+}
+
+// For Dynamic Tensor support. tensorShape describes one allowed dimension for
+// one input/output buffer.
+message tensorShape {
+  dataType type = 1;
+  repeated int32 dims = 2;
+}
+
+// The size of the shapes array shall be the same as inputs+outputs.
+// The order of shapes is inputs first, followed by outputs.
+// The order within inputs/outputs shall be the same as in IOBindings.
+message IOShapes {
+  repeated tensorShape shapes = 1;
+}
+
+message networkDescriptor {
+  uint32 major_version = 1;
+  uint32 minor_version = 2;
+  string network_name = 3;
+  repeated IOBinding inputs = 4;
+  repeated IOBinding outputs = 5;
+  repeated DMABuffer dma_buffers = 6;
+  uint32 num_cores = 7;
+  uint32 num_threads = 8;
+  uint32 num_hvx_threads = 9;
+  repeated uint32 thread_groups = 10;
+  uint32 thread_group_issue_count = 11;
+  Stats stats = 12;
+  repeated string thread_group_names = 13;
+  int32 batch_size = 14;
+  CRCInfo crc_info = 16;
+  repeated uint32 cluster_offsets = 17;
+  repeated IOShapes allowed_shapes = 18; // Listing all allowed combinations
+}
+
+message IODescriptor
+{
+  dataType type = 1;       // Type information
+  float qscale = 2;        // Quantization scale
+  int32 qoffset = 3;       // Quantization offset
+  repeated int32 dims = 4; // Tensor dimensions
+  networkDescLayout layout = 5;
+}
+
+message IOBinding {
+  string name = 1;                    // IO name
+  IODescriptor io_initial = 2;        // Pre-transformation descriptor
+  IODescriptor io_transformed = 3;    // Post-transformation descriptor
+  repeated transform transformseq = 4;
+  bool is_partial_allowed = 5;        // Partial user buffer allowed?
+  uint32 align = 6;                   // Required alignment in dest DMA buffer
+}
+
+// The order of the buffers specifies the buffer_num, and is referenced
+// in the CopyDMABuffer message.
+message DMABuffer {
+  uint32 size = 1;
+  direction dir = 2;         // Buffers are uni-directional, specify In or Out
+}
+
+message OpNameKind {
+  string name = 1;
+  string kind = 2;
+  string type = 3;
+  string memory = 4;
+  string shape = 5;
+  string operand = 6;
+  uint64 output_size = 7;
+  string attributes = 8;
+  repeated string operands = 9;
+}
+
+message ThreadGroupOpNameKinds {
+  repeated OpNameKind op_name_kinds = 1;
+}
+
+message CoreOpNameKinds {
+  repeated ThreadGroupOpNameKinds tg_op_name_kinds = 1;
+}
+
+message Stats {
+  uint32 buff_num = 1; // DMA buffer number containing stats buffer
+
+  bool print_stats = 2;            // -aic-stats
+  int32 stats_level = 3;           // -aic-stats-level
+  bool stats_no_host_sync = 4;     // -aic-stats-nohostsync
+  bool print_op_stats = 5;         // -aic-op-stats
+  int32 op_stats_level = 6;        // -aic-op-stats-level
+  int32 batch_size = 7;            // -aic-stats-batchsize
+  bool count_ddr_bw = 8;           // -aic-ddr-stats
+  int32 utimer_freq_ms = 9;
+  repeated int32 pmu_events = 10;
+  repeated int32 ops_per_core = 11;
+  repeated CoreOpNameKinds core_op_name_kinds = 12;
+  int32 pmu_stats_level = 13;      // -aic-pmu-stats-level
+}
+
+message transform {
+  transformKind kind = 1;
+  dataType type = 2;
+  float scale = 3;
+  int32 offset = 4;
+  repeated int32 dims = 5; // Dim sizes
+  networkDescLayout layout = 6;
+
+  repeated int32 shuffle = 7; // Transpose
+  ConvertToD32 convert_to_d32 = 8;
+  CopyDMABuffer copy_dma_buffer = 9;
+
+  message ConvertToD32 {
+    int32 padding_val = 1;
+    int32 x_pad_begin = 2;
+    int32 y_pad_begin = 3;
+    int32 x_pad_end = 4;
+    int32 y_pad_end = 5;
+    int32 d_pad_end = 6;
+  }
+
+// By convention, buffer_num refers to the index of the DMABuffer message
+// buffer_num must not exceed dma_buffers().size()
+  message CopyDMABuffer {
+    direction dir = 1;     // is this a read or write of the DMA buffer
+    // byte offset into buffer for outputs and non-partial inputs or byte offset
+    // into DMA buffer header containing dynamic offset/size for partial inputs.
+    uint32 offset = 2;
+    uint32 buffer_num = 3; // number of DMA buffer this operation refers to
+  }
+}
