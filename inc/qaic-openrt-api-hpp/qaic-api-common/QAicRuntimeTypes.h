@@ -15,6 +15,7 @@
 #include "QAicTypes.h"
 #include <cstdint>
 #include <climits>
+#include <string>
 
 using QID = int32_t;
 using QCtrlChannelID = uint8_t;
