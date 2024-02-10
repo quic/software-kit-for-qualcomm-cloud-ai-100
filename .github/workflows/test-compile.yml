@@ -42,4 +42,4 @@ jobs:
           PULL_REPO: ${{ github.event.pull_request.head.repo.html_url }}
       run: |
         [[ -n ${PULL_REPO} ]] || cm run script --tags=get,qaic,software,kit,_repo.https://github.com/${{ github.repository }},_branch.${{ github.ref_name }} --adr.compiler.tags=${{ matrix.compiler }} --adr.compiler.version=${{ matrix.llvm-version }} --quiet
-        [[ -z ${PULL_REPO} ]] || cm run script --tags=get,qaic,software,kit,_repo.${{ github.event.pull_request.head.repo.html_url }},_branch.${{ github.event.pull_request.head.ref }} --adr.compiler.tags=llvm --adr.compiler.version=${{ matrix.llvm-version }} --quiet
+        [[ -z ${PULL_REPO} ]] || cm run script --tags=get,qaic,software,kit,_repo.${{ github.event.pull_request.head.repo.html_url }},_branch.${{ github.event.pull_request.head.ref }} --adr.compiler.tags=${{ matrix.compiler }} --adr.compiler.version=${{ matrix.llvm-version }} --quiet
