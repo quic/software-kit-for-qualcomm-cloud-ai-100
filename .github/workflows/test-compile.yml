@@ -34,7 +34,7 @@ jobs:
     - name: Install dependencies
       run: |
         python3 -m pip install cmind
-        cm pull repo ctuning@mlcommons-ck
+        cm pull repo mlcommons@ck
         cm run script --tags=get,sys-utils-cm --quiet
   
     - name: Test Software Kit for compilation on Ubuntu 20.04
