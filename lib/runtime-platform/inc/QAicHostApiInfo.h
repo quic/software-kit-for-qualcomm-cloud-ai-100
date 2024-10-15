@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 #ifndef QAIC_HOST_API_INFO_H
 #define QAIC_HOST_API_INFO_H
@@ -141,7 +141,7 @@ typedef struct {
 
   /// Reset required to retire additional DDR pages
   uint8_t need_reset_to_retire_pages;
-  uint8_t padding1[1];
+  uint8_t padding[1];
 
   /* PVS Image Version Number */
   uint32_t pvs_image_version;
@@ -153,7 +153,13 @@ typedef struct {
 
   /// DDR pages that have been retired
   uint32_t num_retired_pages;
-  uint8_t padding4[4];
+
+  // SKU type
+  uint8_t sku_type;
+  // Complex ID
+  uint8_t complex_id;
+  // Padding
+  uint8_t padding1[2];
 } __attribute__((packed)) host_api_info_dev_data_internal_t;
 
 /// Message Format Type NNC_STATUS_QUERY_NSP

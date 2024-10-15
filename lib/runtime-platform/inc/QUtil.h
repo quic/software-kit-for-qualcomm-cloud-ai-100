@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 #ifndef QUTIL_H
 #define QUTIL_H
@@ -39,6 +39,8 @@ std::string str(const QDevInfo &info);
 std::string str(const QResourceInfo &info);
 std::string str(const QPerformanceInfo &info);
 std::string str(const QBoardInfo &info);
+
+std::string getSkuTypeStr(const uint8_t skuType);
 
 void convertToHostFormat(const host_api_info_data_header_internal_t &source,
                          QHostApiInfoDevData &target);

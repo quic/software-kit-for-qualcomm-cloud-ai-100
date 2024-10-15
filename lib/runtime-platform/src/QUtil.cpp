@@ -1,12 +1,13 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
-#include "QUtil.h"
 #include "QAicRuntimeTypes.h"
+#include "QNncProtocol.h"
 #include "QOsal.h"
 #include "QTypes.h"
-#include <iostream>
+#include "QUtil.h"
 #include <iomanip>
+#include <iostream>
 
 namespace qaic {
 
@@ -86,6 +87,22 @@ std::string str(uint8_t fwFeaturesBitmap) {
     ss << fmt::format("[FUSA]");
   }
   return ss.str();
+}
+
+std::string getSkuTypeStr(const uint8_t skuType) {
+  static constexpr std::array<const char *,
+                              NNC_TRANSACTION_SKU_TYPE_DEV_MAX_SKU>
+      enumToStringMap = {
+          "Invalid",   "M.2",
+          "PCIe",      "PCIe Pro",
+          "PCIe Lite", "PCIe Ultra",
+          "Auto",      "PCIe Ultra Plus",
+          "PCIe 080",  "PCIe Ultra 080",
+      };
+  if (skuType >= NNC_TRANSACTION_SKU_TYPE_DEV_MAX_SKU) {
+    return "Invalid";
+  }
+  return enumToStringMap[skuType];
 }
 
 std::string str(const QDevInfo &info) {
@@ -226,6 +243,9 @@ std::string str(const QDevInfo &info) {
 
   ss << fmt::format("\n\tNSP Defective PG Mask: 0x{:X}",
                     (uint32_t)info.devData.nspPgMask);
+
+  ss << fmt::format("\n\tSku Type:{}",
+                    getSkuTypeStr(info.devData.resourceInfo.skuType));
   ss << std::endl;
   return ss.str();
 }
@@ -428,6 +448,8 @@ void convertToHostFormat(const host_api_info_dev_data_internal_t &source,
   target.performanceInfo.compFrequencyHz = source.perf_info.compFrequencyHz;
   target.performanceInfo.memFrequencyHz = source.perf_info.memFrequencyHz;
   target.performanceInfo.sysFrequencyHz = source.perf_info.sysFrequencyHz;
+
+  target.resourceInfo.skuType = source.sku_type;
 }
 
 void convertToHostFormat(const host_api_info_nsp_static_data_internal_t &source,

@@ -6,8 +6,8 @@
 
 #include "QAicHostApiInfo.h"
 #include "QAicRuntimeTypes.h"
-#include "dev/aic100/qaic_accel.h"
 #include "QTypes.h"
+#include "dev/aic100/qaic_accel.h"
 #include <stdint.h>
 
 #define NNC_MAX_STRING_LENGTH 64
@@ -55,8 +55,25 @@ typedef enum nnc_transaction_device_flag_bitpos_type {
   NNC_DEVICE_FEATURE_FLAG_ECC_DDR_FLAG_BIT = 6,
   NNC_DEVICE_FEATURE_PAGE_RET_FLAG_BIT = 7,
   NNC_DEVICE_FEATURE_SECURE_BOOT_FLAG_BIT = 8,
+  NNC_DEVICE_FEATURE_SOC_DEBUG_FLAG_BIT = 9,
   NNC_DEVICE_FEATURE_FLAG_NUM_BITS
 } nnc_transaction_device_flag_bitpos_type;
+
+/// SKU Type
+typedef enum nnc_transaction_sku_query_type {
+  NNC_TRANSACTION_SKU_TYPE_DEV_INVALID_SKU = 0,
+  NNC_TRANSACTION_SKU_TYPE_DEV_M_2_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_PCIE_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_PCIE_PRO_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_PCIE_LITE_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_PCIE_ULTRA_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_AUTO_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_PCIE_ULTRA_PLUS_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_PCIE_080_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_PCIE_ULTRA_080_SKU,
+  NNC_TRANSACTION_SKU_TYPE_DEV_MAX_SKU,
+  NNC_TRANSACTION_SKU_TYPE_ENUM_MAX = UINT8_MAX,
+} nnc_transaction_sku_query_type_t;
 
 /**
  * nnc_commands contains information exchanged between QSM and LRT lib.

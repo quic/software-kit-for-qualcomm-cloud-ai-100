@@ -1,5 +1,7 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
+
+#include <limits>
 
 #include "QAicOpenRtUnitTestBase.hpp"
 #include "QAicOpenRtUtil.hpp"
@@ -74,6 +76,21 @@ TEST_F(QAicOpenRtApiUtilsUnitTest, DeviceResourceTest) {
 
 TEST_F(QAicOpenRtApiUtilsUnitTest, DevicePerformanceTest) {
   TestUtilsQueryDevicePerformance();
+}
+
+TEST_F(QAicOpenRtApiUtilsUnitTest, CheckSkuTypeToStringConversion) {
+    ASSERT_STREQ("Invalid", qaic::qutil::getSkuTypeStr(0).c_str());
+    ASSERT_STREQ("M.2", qaic::qutil::getSkuTypeStr(1).c_str());
+    ASSERT_STREQ("PCIe", qaic::qutil::getSkuTypeStr(2).c_str());
+    ASSERT_STREQ("PCIe Pro", qaic::qutil::getSkuTypeStr(3).c_str());
+    ASSERT_STREQ("PCIe Lite", qaic::qutil::getSkuTypeStr(4).c_str());
+    ASSERT_STREQ("PCIe Ultra", qaic::qutil::getSkuTypeStr(5).c_str());
+    ASSERT_STREQ("Auto", qaic::qutil::getSkuTypeStr(6).c_str());
+    ASSERT_STREQ("PCIe Ultra Plus", qaic::qutil::getSkuTypeStr(7).c_str());
+    ASSERT_STREQ("PCIe 080", qaic::qutil::getSkuTypeStr(8).c_str());
+    ASSERT_STREQ("PCIe Ultra 080", qaic::qutil::getSkuTypeStr(9).c_str());
+    ASSERT_STREQ("Invalid", qaic::qutil::getSkuTypeStr(10).c_str());
+    ASSERT_STREQ("Invalid", qaic::qutil::getSkuTypeStr(std::numeric_limits<std::uint8_t>::max()).c_str());
 }
 
 } // namespace QAicOpenRtContextUnitTest
