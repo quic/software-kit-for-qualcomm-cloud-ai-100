@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #ifndef AIC_METADATA_LIB
@@ -6,8 +6,8 @@
 
 #include <stdint.h>
 
-#define AIC_METADATA_MAJOR_VERSION 0
-#define AIC_METADATA_MINOR_VERSION 12
+#define AIC_METADATA_MAJOR_VERSION 1
+#define AIC_METADATA_MINOR_VERSION 0
 #define AIC_METADATA_EXEC_CTX_MAJOR_VERSION 4
 #define AIC_METADATA_EXEC_CTX_MINOR_VERSION 0
 

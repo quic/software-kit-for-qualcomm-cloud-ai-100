@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "QProgramContainer.h"
@@ -452,12 +452,11 @@ QStatus QProgramContainer::init() {
   }
 
   if (networkDesc_.major_version() != AIC_NETWORK_DESCRIPTION_MAJOR_VERSION) {
-    LogErrorG("Incompatible Network Descriptor, library supports {}.{} "
+    LogWarnG("Incompatible Network Descriptor, library supports {}.{} "
               "program requires {}.{}",
               AIC_NETWORK_DESCRIPTION_MAJOR_VERSION,
               AIC_NETWORK_DESCRIPTION_MINOR_VERSION,
               networkDesc_.major_version(), networkDesc_.minor_version());
-    return QS_ERROR;
   }
 
   if (networkDesc_.minor_version() > AIC_NETWORK_DESCRIPTION_MINOR_VERSION) {

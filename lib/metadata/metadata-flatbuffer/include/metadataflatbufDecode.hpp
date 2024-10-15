@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #ifndef FLATBUFF_DRIVER_FLATBUF_DECODE_H
@@ -18,14 +18,52 @@ static const std::string networkElfMetadataFBSection("metadata_fb");
 
 class FlatDecode {
 public:
+    //------------------------------------------------------------------------
+    // The "metadata terminator" is a 4 byte header that goes
+    // in front of metadata, such that section["metadata"]=
+    // [term metadata][metadata in flatbuffer format].
+    //
+    // Why: This change is required to help firmware side report
+    // version incompatibility error when trying to read the metadata.
+    // We need to strip this header before reading the metadata.
+    // If the metadata fails to decode and the  header is exactly
+    // "terminator metadata" (fields set to {1,0,0}), we  remove the
+    // header.
+    //
+    // Input: flatbuf that may have a metadata terminator header
+    // Output: flatbuf with metadata terminator header removed
+    //------------------------------------------------------------------------
+  static auto stripTerminatorMetadata(std::vector<uint8_t> &flatbuf) {
+      struct TermMetadata final {
+          uint16_t versionMajor{1};
+          uint16_t versionMinor{};
+          uint32_t padding{};
+      };
+
+      static constexpr TermMetadata termMetadata{1, 0, 0};
+
+      if (!flatbufVerifyMetadataBuffer(flatbuf) &&
+          flatbuf.size() > sizeof(termMetadata)) {
+          TermMetadata header;
+          memcpy(&header, flatbuf.data(), sizeof(termMetadata));
+          if (header.versionMajor == termMetadata.versionMajor &&
+              header.versionMinor == termMetadata.versionMinor) {
+              // it failed to verify because the header is a termMetadata
+              flatbuf.erase(flatbuf.begin(), flatbuf.begin() + sizeof(termMetadata));
+          }
+      }
+      return flatbuf;
+  }
+
   //------------------------------------------------------------------------
   // Same as readMetadataFlat but returns a C++ STL object of the flatbuffer
   // if result string is empty, this function worked
   //------------------------------------------------------------------------
-  static auto readMetadataFlatNativeCPP(const std::vector<uint8_t> &flatbuf,
+  static auto readMetadataFlatNativeCPP(std::vector<uint8_t> &flatbuf,
                                         std::string &resultString) {
     std::unique_ptr<AicMetadataFlat::MetadataT> retvalue;
     resultString = ""; // empty result string means it worked
+    flatbuf = stripTerminatorMetadata(flatbuf);
     if (!flatbufVerifyMetadataBuffer(flatbuf)) {
       resultString += " metadataflat failed to verify \n";
       return retvalue;
@@ -36,12 +74,15 @@ public:
     }
     return AicMetadataFlat::UnPackMetadata((const uint8_t *)&flatbuf[0]);
   }
+
   //------------------------------------------------------------------------
   // Precondition: some buffer of size bytes that may be a flatbuffer, an empty
   //      string to print any results to.
   // Postcondition: (1) buffer validated as instance of AicMetadataFlat
   //                (2) major versions match
   //                (3) all requiredFields inside AicMetadataFlat are in the
+  //                 array known_AicMetadataFlat_fields
+  //                (4) flatbuffer version returned as constant readable object
   //                 array known_AicMetadataFlat_fields
   //                (4) flatbuffer version returned as constant readable object
   //                 using auto generated accessor functions
@@ -61,6 +102,7 @@ public:
     }
     return AicMetadataFlat::GetMetadata(&flatbuf[0]);
   }
+
   //------------------------------------------------------------------------
   // Precondition: some buffer of size bytes that may be a flatbuffer
   // Postcondition: (1) buffer validated as instance of AicMetadataFlat
@@ -278,6 +320,7 @@ private:
       }
     }
   }
+
   //------------------------------------------------------------------------
   // Precondition:  metadataAsFlat contains MultiCast Entry fields not in
   // *aicMetadata Postcondition: aicMetadata contains the same fields

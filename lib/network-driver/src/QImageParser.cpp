@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "QImageParser.h"
@@ -48,10 +48,8 @@ std::unique_ptr<QMetaDataInterface> QImageParser::parseImage(const QBuffer &buf,
       LogError("Error parsing meta");
       return nullptr;
     }
-    auto metadataOriginal = std::vector<uint8_t>(
+    metadataFlat = std::vector<uint8_t>(
         metaSec->get_data(), metaSec->get_data() + metaSec->get_size());
-    metadataFlat =
-        metadata::FlatEncode::aicMetadataRawTranslateFlatbuff(metadataOriginal);
   }
 
   LogDebug("metadata size {}", metadataFlat.size());

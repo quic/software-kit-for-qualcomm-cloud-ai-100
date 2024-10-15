@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #ifndef FLATBUFF_DRIVER_FLATBUF_ENCODE_H
@@ -184,12 +184,11 @@ public:
       std::cout << "Error parsing AICmetadata" << metadataError.data();
       throw;
     }
-    std::vector<uint8_t> metadata_bytes((uint8_t *)original_metadata,
-                                        (uint8_t *)original_metadata +
-                                            aicMetadata_bytes.size());
-    auto vec =
-        metadata::FlatEncode::aicMetadataTranslateFlatbuff(metadata_bytes);
-    return vec;
+    return {
+      (uint8_t*)original_metadata,
+      (uint8_t*)original_metadata +
+      aicMetadata_bytes.size()
+    };
   }
 
   //------------------------------------------------------------------------

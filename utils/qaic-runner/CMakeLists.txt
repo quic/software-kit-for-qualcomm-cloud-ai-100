@@ -11,4 +11,5 @@ target_link_libraries(qaic-runner
                      AICMetadataFlatbuffer
                      AICMetadata
                      module-flatbuffers
-                     AICPrePostProc)
+                     AICPrePostProc
+                     Threads::Threads)

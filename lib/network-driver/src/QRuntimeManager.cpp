@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "QRuntimeManager.h"
@@ -43,7 +43,7 @@ QLogInterface *QRuntimeManager::getLogger() {
   return logger_;
 }
 
-bool QRuntimeManager::checkFWVersions(QRuntimeInterface *rt) {
+bool QRuntimeManager::checkFWVersions([[maybe_unused]] QRuntimeInterface *rt) {
   QStatus status;
   uint32_t liveDevCnt = 0, incompDevCnt = 0;
   QDevInfo devInfo;

@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #ifndef QNNCPROTOCOL_H
@@ -20,7 +20,7 @@
 
 /** NNC interface (COMMAND Protocol) between LRT <--> FW (using KMD passthrough
  * messages) */
-#define NNC_COMMAND_PROTOCOL_MAJOR_VERSION (14)
+#define NNC_COMMAND_PROTOCOL_MAJOR_VERSION (17)
 #define NNC_COMMAND_PROTOCOL_MINOR_VERSION (0)
 
 /**
@@ -508,6 +508,7 @@ typedef struct nnc_cmd_activate_response {
    */
   uint32_t virtual_channel_id;
   uint64_t ddr_base;
+  uint64_t dynamic_ddr_base;
   uint64_t mcid_base;
   /* mcid base address used for cmdObj dma buffers */
   uint64_t mcid_base_dma_cmd;

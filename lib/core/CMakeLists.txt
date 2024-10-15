@@ -1,3 +1,6 @@
+## Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
+## SPDX-License-Identifier: BSD-3-Clause-Clear
+
 project (QAicCore)
 
 add_subdirectory(proto)
@@ -27,6 +30,6 @@ target_link_libraries(QAicCore PRIVATE module-flatbuffers)
 target_link_libraries(QAicCore PRIVATE module-qpcpp)
 target_link_libraries(QAicCore PRIVATE module-elfio)
 target_link_libraries(QAicCore PRIVATE module-json)
-target_link_libraries(QAicCore PRIVATE libprotobuf)
+target_link_libraries(QAicCore PRIVATE protobuf::libprotobuf)
 
 set_target_compiler_warnings(QAicCore)

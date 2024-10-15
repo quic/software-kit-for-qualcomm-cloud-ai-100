@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "QUtil.h"
@@ -434,11 +434,9 @@ bool QProgram::init() {
       LogError("Error parsing meta");
       return false;
     }
-    auto metadataOriginal = std::vector<uint8_t>(
-        metaSec->get_data(), metaSec->get_data() + metaSec->get_size());
-    metadataBuffer_ =
-        metadata::FlatEncode::aicMetadataRawTranslateFlatbuff(metadataOriginal);
+    metadataBuffer_ = std::vector<uint8_t>( metaSec->get_data(), metaSec->get_data() + metaSec->get_size());
   }
+
   metadataBufferInit_ = metadataBuffer_;
   metadataBufferRaw_ = metadataBuffer_;
 
@@ -482,12 +480,11 @@ bool QProgram::updateInternalData() {
   }
 
   if (networkDesc_.major_version() != AIC_NETWORK_DESCRIPTION_MAJOR_VERSION) {
-    LogError("Incompatible Network Descriptor, library supports {}.{} "
+    LogWarn("Incompatible Network Descriptor, library supports {}.{} "
              "program requires {}.{}",
              AIC_NETWORK_DESCRIPTION_MAJOR_VERSION,
              AIC_NETWORK_DESCRIPTION_MINOR_VERSION,
              networkDesc_.major_version(), networkDesc_.minor_version());
-    return false;
   }
 
   if (networkDesc_.minor_version() > AIC_NETWORK_DESCRIPTION_MINOR_VERSION) {
