@@ -1,4 +1,4 @@
-// Copyright (c) 2023 Qualcomm Innovation Center, Inc. All rights reserved.
+// Copyright (c) 2023-2024 Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause-Clear
 
 #include "QOsal.h"
@@ -312,13 +312,22 @@ QStatus getTelemetryInfo(QTelemetryInfo &telemetryInfo,
     return fmt::format("{}/{}/", hwmonPath, subDirectory);
   }();
 
-  auto readTelemetryData = [](const std::string &path) -> uint32_t {
-    std::string data;
-    std::ifstream ifs(path);
-    if (ifs.is_open()) {
-      getline(ifs, data);
-      ifs.close();
-      return std::stoi(data);
+  auto readTelemetryData = [](const std::string &path) noexcept -> uint32_t {
+    try {
+      std::string data;
+      std::ifstream ifs(path);
+      if (ifs.is_open()) {
+        getline(ifs, data);
+        ifs.close();
+        return std::stoi(data);
+      }
+    } catch (const std::exception &ex) {
+      LogWarnG("Failed to read Telemetry Data for path : {} : {}", path,
+               ex.what());
+    } catch (...) {
+      LogWarnG(
+          "Failed to read Telemetry Data for path : {} : Unknown exception",
+          path);
     }
     return 0; // Return Zero in case of file read error
   };
