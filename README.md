@@ -22,8 +22,11 @@ Arch: x86 Ubuntu:  Centos:
 ### Prerequisites
 
   Build Dependencies
-    - CMake 3.24 or higher
-      Follow the instructions in [cmake](https://cmake.org/download/) for installation
+
+  - CMake 3.24 or higher:
+    Follow the instructions from [kitware](https://apt.kitware.com/) for installing on Ubuntu 22.04.
+  - Install necessary packages:
+    ```sudo apt update && sudo apt install build-essential libudev-dev libpci-dev```
 
   Executable binary for QAic 100 Card
      - To generate a executable ML workload runnnable on QAic 100, please follow the instructions at [qualcomm-cloud-ai-100-cc](https://github.com/quic/software-kit-for-qualcomm-cloud-ai-100-cc)

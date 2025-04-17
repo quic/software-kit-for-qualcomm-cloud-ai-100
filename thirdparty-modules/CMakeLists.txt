@@ -120,8 +120,9 @@ target_include_directories(module-qpcpp PUBLIC
 #Get gtest
 FetchContent_Declare(googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        release-1.10.0
+  GIT_TAG        release-1.12.0
   SOURCE_SUBDIR  googletest
   FIND_PACKAGE_ARGS NAMES googletest
 )
+set(GOOGLETEST_VERSION 1.12.0)
 FetchContent_MakeAvailable(googletest)
