@@ -89,7 +89,8 @@ TEST_F(QAicOpenRtApiUtilsUnitTest, CheckSkuTypeToStringConversion) {
     ASSERT_STREQ("PCIe Ultra Plus", qaic::qutil::getSkuTypeStr(7).c_str());
     ASSERT_STREQ("PCIe 080", qaic::qutil::getSkuTypeStr(8).c_str());
     ASSERT_STREQ("PCIe Ultra 080", qaic::qutil::getSkuTypeStr(9).c_str());
-    ASSERT_STREQ("Invalid", qaic::qutil::getSkuTypeStr(10).c_str());
+    ASSERT_STREQ("AI200", qaic::qutil::getSkuTypeStr(10).c_str());
+    ASSERT_STREQ("Invalid", qaic::qutil::getSkuTypeStr(11).c_str());
     ASSERT_STREQ("Invalid", qaic::qutil::getSkuTypeStr(std::numeric_limits<std::uint8_t>::max()).c_str());
 }
 

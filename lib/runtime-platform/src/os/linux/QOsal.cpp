@@ -33,7 +33,9 @@ extern "C" {
 }
 
 const uint32_t QAicPciVendor = 0x17CB;
-const uint32_t QAicPciDevice = 0xA100;
+
+constexpr uint32_t QAicPciDeviceA100 = 0xA100; // AI100
+constexpr uint32_t QAicPciDeviceA110 = 0xA110; // AI200
 
 namespace qaic {
 
@@ -45,6 +47,11 @@ static std::vector<QPciInfo> devListLocal;
 const std::string QAicInvalidDevice = "accelinvalid";
 const std::string QAicMhiUciSubsystem = "mhi_qaic_ctrl";
 const std::string QAicPciSubsystem = "pci";
+
+bool isSupportedAicDeviceForEnumeration(uint16_t deviceId) {
+  return (deviceId == QAicPciDeviceA100 ||
+          deviceId == QAicPciDeviceA110);
+}
 
 int eventfd(unsigned int initval, int flags) {
   return ::eventfd(initval, flags);
@@ -78,7 +85,7 @@ uint32_t enumAicDevices(DevList &devList) {
     pciMap.clear();
     for (dev = pacc->devices; dev; dev = dev->next) {
       pci_fill_info(dev, PCI_FILL_IDENT | PCI_FILL_BASES | PCI_FILL_CLASS);
-      if (dev->vendor_id == QAicPciVendor && dev->device_id == QAicPciDevice) {
+      if ((dev->vendor_id == QAicPciVendor) && isSupportedAicDeviceForEnumeration(dev->device_id)) {
         std::snprintf(key, sizeof(key), "%04d%02d%02d%02d", dev->domain,
                       dev->bus, dev->dev, dev->func);
 

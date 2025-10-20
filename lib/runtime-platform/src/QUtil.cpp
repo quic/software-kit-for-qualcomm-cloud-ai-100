@@ -98,6 +98,7 @@ std::string getSkuTypeStr(const uint8_t skuType) {
           "PCIe Lite", "PCIe Ultra",
           "Auto",      "PCIe Ultra Plus",
           "PCIe 080",  "PCIe Ultra 080",
+          "AI200"
       };
   if (skuType >= NNC_TRANSACTION_SKU_TYPE_DEV_MAX_SKU) {
     return "Invalid";
