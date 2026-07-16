@@ -11,6 +11,7 @@ add_executable(qaic-openrt-api-unit-test
     src/QAicOpenRtApiProgramUnitTest.cpp
     src/QAicOpenRtApiExecObjUnitTest.cpp
     src/QAicOpenRtInferenceVectorUnitTest.cpp
+    src/QAicOsalEnumerationUnitTest.cpp
 )
 
 target_link_libraries(qaic-openrt-api-unit-test

@@ -44,6 +44,9 @@ constexpr char QAicDeviceSubsystem[] = "accel";
 
 namespace QOsal {
 int eventfd(unsigned int initval, int flags);
+// Returns true if the PCI device id is a Cloud AI accelerator that should be
+// enumerated as a physical device (used by enumAicDevices()).
+bool isSupportedAicDeviceForEnumeration(uint16_t deviceId);
 uint32_t enumAicDevices(DevList &devList);
 int getDbcFifoSize(uint32_t *fifoSize, QPciInfo *qPciInfo, uint32_t dbcID);
 int getDbcQueuedSize(uint32_t *queued, QPciInfo *dev, uint32_t dbcID);
