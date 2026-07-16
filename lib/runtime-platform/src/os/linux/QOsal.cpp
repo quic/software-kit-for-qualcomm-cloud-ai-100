@@ -34,6 +34,7 @@ extern "C" {
 
 const uint32_t QAicPciVendor = 0x17CB;
 
+constexpr uint32_t QAicPciDeviceA080 = 0xA080; // AI80
 constexpr uint32_t QAicPciDeviceA100 = 0xA100; // AI100
 constexpr uint32_t QAicPciDeviceA110 = 0xA110; // AI200
 
@@ -49,7 +50,8 @@ const std::string QAicMhiUciSubsystem = "mhi_qaic_ctrl";
 const std::string QAicPciSubsystem = "pci";
 
 bool isSupportedAicDeviceForEnumeration(uint16_t deviceId) {
-  return (deviceId == QAicPciDeviceA100 ||
+  return (deviceId == QAicPciDeviceA080 ||
+          deviceId == QAicPciDeviceA100 ||
           deviceId == QAicPciDeviceA110);
 }
 
